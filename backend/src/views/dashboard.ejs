@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 داشبورد مدیریت ربات اینستاگرام</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f8f9fa; }
+        .keyword-badge { font-size: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">داشبورد مدیریت ربات اینستاگرام</h1>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                افزودن قانون جدید
+            </div>
+            <div class="card-body">
+                <form action="/rules" method="POST">
+                    <div class="mb-3">
+                        <label for="keyword" class="form-label">کلمه کلیدی (مثلا: قیمت)</label>
+                        <input type="text" class="form-control" id="keyword" name="keyword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="replyText" class="form-label">متن پاسخ</label>
+                        <textarea class="form-control" id="replyText" name="replyText" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">افزودن قانون</button>
+                </form>
+            </div>
+        </div>
+
+        <h2 class="mb-3">لیست قوانین فعال</h2>
+        <div class="list-group">
+            <% if(rules.length > 0) { %>
+                <% rules.forEach(rule => { %>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>کلمه کلیدی:</strong> <span class="badge bg-secondary keyword-badge"><%= rule.keyword %></span>
+                            <p class="mb-0 mt-2"><strong>پاسخ:</strong> <%= rule.replyText %></p>
+                        </div>
+                        <form action="/rules/delete/<%= rule._id %>" method="POST">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p class="text-center text-muted">هنوز قانونی ثبت نشده است.</p>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>
