@@ -1,52 +1,69 @@
 #!/bin/bash
+# ADDED: Exit immediately if a command exits with a non-zero status.
+set -e
 
 echo "================================================="
 echo " Automatic Installer for Instagram Bot on Ubuntu "
-echo " (v2 with Auto-MongoDB Setup)                  "
+echo " (v3 with Correct Dependencies for Ubuntu 24)    "
 echo "================================================="
 
-# --- 1. System Update and Dependencies ---
-echo "[INFO] Updating system and installing dependencies..."
+# --- 1. System Update and Prerequisites ---
+echo "[INFO] Updating system and installing prerequisites..."
 sudo apt-get update
-# ADDED: mongodb is now installed automatically
-sudo apt-get install -y nginx curl nodejs mongodb
+sudo apt-get install -y curl gnupg ca-certificates
 
-# Start and enable MongoDB service
+# --- 2. Install MongoDB (The Correct Way for Ubuntu 24) ---
+echo "[INFO] Setting up MongoDB repository..."
+# Import the public key used by the package management system
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+   sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
+   --dearmor
+# Create a list file for MongoDB
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | \
+   sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+echo "[INFO] Installing MongoDB..."
+sudo apt-get update
+# The correct package name is mongodb-org
+sudo apt-get install -y mongodb-org
+
 echo "[INFO] Starting and enabling MongoDB service..."
-sudo systemctl start mongodb
-sudo systemctl enable mongodb
+sudo systemctl start mongod
+sudo systemctl enable mongod
 
-# Install PM2 globally
+
+# --- 3. Install Node.js, NPM, and PM2 (The Correct Way) ---
+echo "[INFO] Setting up Node.js repository..."
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+echo "[INFO] Installing Node.js, npm, and PM2..."
+sudo apt-get install -y nodejs
 sudo npm install -g pm2
 
-# --- 2. Backend Setup ---
+
+# --- 4. Backend Setup ---
 echo "[INFO] Setting up Backend..."
 cd backend
-if [ -d "node_modules" ]; then
-    echo "[INFO] node_modules already exists, skipping npm install."
-else
-    npm install
-fi
+npm install
 cd ..
 
-# --- 3. Frontend Setup ---
+
+# --- 5. Frontend Setup ---
 echo "[INFO] Setting up and building Frontend..."
 cd frontend
-if [ -d "node_modules" ]; then
-    echo "[INFO] node_modules already exists, skipping npm install."
-else
-    npm install
-fi
+npm install
 npm run build
 cd ..
 
-# --- 4. Interactive Configuration ---
+
+# --- 6. Interactive Configuration ---
 echo "[ACTION] Please answer the following questions to create the .env file."
-# The setup script is now simpler
 node setup.js
 
-# --- 5. Nginx Configuration ---
+
+# --- 7. Nginx Info (No changes here) ---
 echo "[ACTION] Nginx needs to be configured manually."
+# ... (The rest of the script is the same)
 echo "Please create a file like '/etc/nginx/sites-available/instagram-bot' with the content below."
 echo "Remember to replace 'your_domain.com' with your actual domain name and set up SSL (e.g., with Let's Encrypt)."
 echo ""
@@ -88,15 +105,15 @@ echo "sudo systemctl restart nginx"
 echo ""
 
 
-# --- 6. Start Application with PM2 ---
+# --- 8. Start Application with PM2 ---
 echo "[INFO] Starting the application with PM2..."
+# Change to backend directory before starting
 cd backend
 pm2 start src/index.js --name "instagram-bot"
 pm2 save
 pm2 startup
 
 echo "================================================="
-echo "✅ Installation Finished!"
-echo "MongoDB was installed and configured automatically."
-echo "Your application is now running via PM2."
+echo "✅ Installation Finished Successfully!"
+echo "Your application should now be running via PM2."
 echo "================================================="
