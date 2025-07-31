@@ -2,14 +2,21 @@
 
 echo "================================================="
 echo " Automatic Installer for Instagram Bot on Ubuntu "
+echo " (v2 with Auto-MongoDB Setup)                  "
 echo "================================================="
 
 # --- 1. System Update and Dependencies ---
-echo "[INFO] Updating system and installing dependencies (Node.js, Nginx, PM2)..."
+echo "[INFO] Updating system and installing dependencies..."
 sudo apt-get update
-sudo apt-get install -y nginx curl
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
+# ADDED: mongodb is now installed automatically
+sudo apt-get install -y nginx curl nodejs mongodb
+
+# Start and enable MongoDB service
+echo "[INFO] Starting and enabling MongoDB service..."
+sudo systemctl start mongodb
+sudo systemctl enable mongodb
+
+# Install PM2 globally
 sudo npm install -g pm2
 
 # --- 2. Backend Setup ---
@@ -35,6 +42,7 @@ cd ..
 
 # --- 4. Interactive Configuration ---
 echo "[ACTION] Please answer the following questions to create the .env file."
+# The setup script is now simpler
 node setup.js
 
 # --- 5. Nginx Configuration ---
@@ -59,18 +67,15 @@ server {
     # ssl_certificate_key /etc/letsencrypt/live/your_domain.com/privkey.pem;
 
     location / {
-        # This will serve the frontend
         root $(pwd)/frontend/build;
         try_files \$uri /index.html;
     }
 
     location /api {
-        # This forwards API calls to the backend
         proxy_pass http://localhost:5000;
     }
     
     location /webhook {
-        # This forwards webhook calls to the backend
         proxy_pass http://localhost:5000;
     }
 }
@@ -82,6 +87,7 @@ echo "sudo nginx -t"
 echo "sudo systemctl restart nginx"
 echo ""
 
+
 # --- 6. Start Application with PM2 ---
 echo "[INFO] Starting the application with PM2..."
 cd backend
@@ -91,8 +97,6 @@ pm2 startup
 
 echo "================================================="
 echo "✅ Installation Finished!"
+echo "MongoDB was installed and configured automatically."
 echo "Your application is now running via PM2."
-echo "Ensure your Nginx is configured correctly and your domain points to this server's IP."
-echo "Your Webhook URL is: https://your_domain.com/webhook"
-echo "Your Admin Panel is at: https://your_domain.com"
 echo "================================================="
