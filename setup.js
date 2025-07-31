@@ -1,3 +1,4 @@
+// این کد صحیح و آپدیت‌شده است
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -7,7 +8,6 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-// REMOVED: Database URL question is gone
 const questions = [
   'Enter your custom Webhook Verify Token:',
   'Enter your Facebook Page Access Token (Long-lived):',
@@ -30,12 +30,10 @@ const askQuestion = () => {
   } else {
     const envPath = path.join(__dirname, 'backend', '.env');
     
-    // Create content from user answers
     let envContent = Object.entries(answers)
         .map(([key, value]) => `${key}=${value}`)
         .join('\n');
     
-    // ADDED: Automatically add the local MongoDB URI
     envContent += '\nMONGO_URI=mongodb://localhost:27017/instagram_bot';
     envContent += '\nNODE_ENV=production';
     
@@ -45,5 +43,6 @@ const askQuestion = () => {
     rl.close();
   }
 };
+
 
 askQuestion();
